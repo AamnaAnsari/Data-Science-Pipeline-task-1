@@ -10,6 +10,7 @@ This repository contains the end-to-end Data Science and Machine Learning pipeli
 
 ```
 
+```
 ## 🚀 Current Progress & Milestones
 
 ### Phase 1: Setup & Initialization ✅
@@ -127,3 +128,5 @@ Special thanks to Alphatron Technologies for providing the resources and support
 Version 1.0.0 | [↑ Back to Top](#data-science-pipeline---alphatron-technologies)
 
 </div>
+
+```
