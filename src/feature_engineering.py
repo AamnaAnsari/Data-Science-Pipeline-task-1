@@ -1,40 +1,66 @@
 import pandas as pd
+import joblib
+import os
 from sklearn.preprocessing import StandardScaler
 
-def main():
-    # 1. Load Data
-    file_path = '../data/processed/cleaned_dataset.csv'
-    try:
-        df = pd.read_csv(file_path)
-    except FileNotFoundError:
-        print("❌ Error: File not found.")
-        return
+class DataProcessor:
+    def __init__(self, input_path='data/raw/customer_data.csv', 
+                 output_x_path='data/processed/X.csv', 
+                 output_y_path='data/processed/y.csv', 
+                 scaler_path='models/scaler.pkl'):
+        
+        # Variables setup
+        self.input_path = input_path
+        self.output_x_path = output_x_path
+        self.output_y_path = output_y_path
+        self.scaler_path = scaler_path
+        
+        # Folders 
+        os.makedirs(os.path.dirname(self.output_x_path), exist_ok=True)
+        os.makedirs(os.path.dirname(self.scaler_path), exist_ok=True)
+        
+        self.scaler = StandardScaler()
+        self.df = None
+        self.X = None
+        self.y = None
 
-    # 2. Data Cleaning
-    df['Age'] = df['Age'].fillna(df['Age'].median())
-    df['LoyaltyScore'] = df['LoyaltyScore'].fillna(df['LoyaltyScore'].mean())
-    df['TotalPurchases'] = df['TotalPurchases'].fillna(df['TotalPurchases'].median())
-    df['SignupDate'] = df['SignupDate'].fillna(df['SignupDate'].mode()[0])
+    def load_data(self):
+        """Raw data ko load karna."""
+        self.df = pd.read_csv(self.input_path)
+        print("✅ Data Loaded Successfully.")
 
-    # 3. Categorical Encoding 
-    df_encoded = pd.get_dummies(df, columns=['City'], drop_first=True, dtype=int)
+    def preprocess_data(self):
+        """Data clean, encode aur scale karna."""
+        # 1. One-Hot Encoding (City)
+        self.df = pd.get_dummies(self.df, columns=['City'], drop_first=True)
+        
+        # 2. Features (X) aur Target (y) alag karna
+        self.X = self.df.drop('LoyaltyScore', axis=1)
+        self.y = self.df['LoyaltyScore']
+        
+        # 3. Scaling (Age aur TotalPurchases)
+        features_to_scale = ['Age', 'TotalPurchases']
+        self.X[features_to_scale] = self.scaler.fit_transform(self.X[features_to_scale])
+        
+        # saving scaler
+        joblib.dump(self.scaler, self.scaler_path)
+        print(f"✅ Scaler saved at {self.scaler_path}")
 
-    # 4. Feature Scaling (Standardization)
-    scaler = StandardScaler()
-    num_cols = ['Age', 'TotalPurchases', 'LoyaltyScore']
-    df_encoded[num_cols] = scaler.fit_transform(df_encoded[num_cols])
-
-    # 5. Drop Unnecessary Columns 
-    cols_to_drop = ['CustomerID', 'Name', 'SignupDate']
-    df_final = df_encoded.drop(columns=cols_to_drop, errors='ignore')
-
-    print("\n--- Final ML-Ready Data ---")
-    print(df_final.head())
-
-    # 6. Save Pipeline Output
-    output_path = '../data/processed/ml_ready_dataset.csv'
-    df_final.to_csv(output_path, index=False)
-    print(f"\n✅ Feature Engineering Complete! Saved to: {output_path}")
+    def save_processed_data(self):
+        """Processed data ko save karna."""
+        self.X.to_csv(self.output_x_path, index=False)
+        self.y.to_csv(self.output_y_path, index=False)
+        print("✅ Processed X and y saved successfully.")
 
 if __name__ == "__main__":
-    main()
+    print("🚀 Feature Engineering Process Started...")
+    
+    # Make class object
+    processor = DataProcessor()
+    
+    # Call methods
+    processor.load_data()
+    processor.preprocess_data()
+    processor.save_processed_data()
+    
+    print("🎉 Feature Engineering Completed!")

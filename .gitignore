@@ -1,4 +1,15 @@
+# Python Virtual Environment
 venv/
+env/
+
+# Python Cache Files
 __pycache__/
-data/
-*.pkl
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
